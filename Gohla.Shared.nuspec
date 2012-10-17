@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>Gohla.Shared</title>
+    <authors>Gohla</authors>
+    <owners>Gohla</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Shared classes from Gohla</description>
+    <releaseNotes>Shared classes from Gohla.</releaseNotes>
+    <copyright>Copyright 2012</copyright>
+    <tags>Gohla Shared</tags>
+  </metadata>
+</package>

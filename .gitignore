@@ -5,6 +5,7 @@
 *.pidb
 *.exe
 *.manifest
+*.nupkg
 
 /bin
 /obj
