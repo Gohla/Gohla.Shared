@@ -6,5 +6,6 @@
 *.exe
 *.manifest
 
-bin
-obj
+/bin
+/obj
+/packages
