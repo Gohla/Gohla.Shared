@@ -3,7 +3,7 @@ using System.Net;
 using System.Reactive.Linq;
 using System.Xml.Linq;
 
-namespace Gohla.Shared
+namespace Gohla.Shared.XML
 {
     public class ObservableXMLWebRequest : ObservableWebRequest
     {

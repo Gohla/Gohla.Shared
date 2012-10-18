@@ -4,7 +4,7 @@ using System.Net;
 using System.Reactive.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Gohla.Shared
+namespace Gohla.Shared.Json
 {
     public class ObservableJSONWebRequest : ObservableWebRequest
     {

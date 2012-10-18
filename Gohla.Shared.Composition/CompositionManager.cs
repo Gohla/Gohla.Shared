@@ -3,7 +3,7 @@ using System.ComponentModel.Composition.Primitives;
 using Autofac;
 using Autofac.Core;
 
-namespace Gohla.Shared
+namespace Gohla.Shared.Composition
 {
     public static class CompositionManager
     {
