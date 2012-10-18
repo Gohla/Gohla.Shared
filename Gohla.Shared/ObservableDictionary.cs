@@ -3,7 +3,8 @@ using System.Collections.Specialized;
 
 namespace Gohla.Shared
 {
-    public class ObservableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, INotifyCollectionChanged
+    public class ObservableDictionary<TKey, TValue> : Dictionary<TKey, TValue>,
+        IObservableCollection<KeyValuePair<TKey, TValue>>
     {
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
