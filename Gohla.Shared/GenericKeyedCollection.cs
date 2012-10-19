@@ -35,6 +35,11 @@ namespace Gohla.Shared
 
         }
 
+        public new void ChangeItemKey(TItem item, TKey newKey)
+        {
+            base.ChangeItemKey(item, newKey);
+        }
+
         protected override TKey GetKeyForItem(TItem item)
         {
             return item.Key;

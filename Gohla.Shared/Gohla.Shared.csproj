@@ -67,6 +67,7 @@
     <Compile Include="MultiValueDictionary.cs" />
     <Compile Include="ObservableDictionary.cs" />
     <Compile Include="ObservableHashSet.cs" />
+    <Compile Include="ObservableProperty.cs" />
     <Compile Include="ObservableStringWebRequest.cs" />
     <Compile Include="ObservableWebRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
