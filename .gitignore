@@ -4,10 +4,13 @@
 *.pdb
 *.pidb
 *.exe
+*.pdb
+*.dll
 *.manifest
-*.nupkg
+.cache
 
-packages/
+/packages
+!.nuget/nuget.exe
 
 Gohla.Shared/bin
 Gohla.Shared/obj
