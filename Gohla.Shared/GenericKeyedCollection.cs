@@ -1,4 +1,5 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
 
 namespace Gohla.Shared
 {
@@ -7,7 +8,9 @@ namespace Gohla.Shared
         TKey Key { get; }
     }
 
-    public class KeyedCollection<TKey, TItem> : System.Collections.ObjectModel.KeyedCollection<TKey, TItem>,
+    public class KeyedCollection<TKey, TItem> : 
+        System.Collections.ObjectModel.KeyedCollection<TKey, TItem>,
+        IDisposable,
         IObservableCollection<TItem>
         where TItem : class, IKeyedObject<TKey>
     {
@@ -33,6 +36,14 @@ namespace Gohla.Shared
             : base()
         {
 
+        }
+
+        public void Dispose()
+        {
+            if(CollectionChanged == null)
+                return;
+
+            CollectionChanged = null;
         }
 
         public new void ChangeItemKey(TItem item, TKey newKey)

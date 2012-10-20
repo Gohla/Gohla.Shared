@@ -3,7 +3,7 @@ using System.Reactive.Subjects;
 
 namespace Gohla.Shared
 {
-    public class ObservableProperty<T> : IObservable<T>
+    public class ObservableProperty<T> : IDisposable, IObservable<T>
     {
         private T _value;
         private Subject<T> _subject;
@@ -16,6 +16,9 @@ namespace Gohla.Shared
             }
             set
             {
+                if(Equals(_value, value))
+                    return;
+
                 _value = value;
                 _subject.OnNext(value);
             }
@@ -25,6 +28,16 @@ namespace Gohla.Shared
         {
             _value = value;
             _subject = new Subject<T>();
+        }
+
+        public void Dispose()
+        {
+            if(_subject == null)
+                return;
+
+            _subject.OnCompleted();
+            _subject.Dispose();
+            _subject = null;
         }
 
         public IDisposable Subscribe(IObserver<T> observer)
