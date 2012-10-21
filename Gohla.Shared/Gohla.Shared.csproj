@@ -53,6 +53,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-PlatformServices.2.0.20823\lib\Net45\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayConcat.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="ReactiveObservableCollection.cs" />
     <Compile Include="SimpleDebug.cs" />
     <Compile Include="SizeSpeedString.cs" />
+    <Compile Include="SynchronizedGenericKeyedCollection.cs" />
     <Compile Include="TimeSpanExtension.cs" />
   </ItemGroup>
   <ItemGroup>
