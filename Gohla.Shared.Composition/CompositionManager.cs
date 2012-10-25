@@ -38,6 +38,5 @@ namespace Gohla.Shared.Composition
 
             return _container.Resolve<IEnumerable<T>>();
         }
-
     }
 }

@@ -37,6 +37,13 @@ namespace Gohla.Shared
             _subscriptions = null;
         }
 
+        public void CopyAndFollow<R>(ObservableCollection<R> collection, Func<R, ObservableCollection<T>> convert)
+        {
+            foreach(R r in collection)
+                AddCollection(convert(r));
+            Follow<R>(collection, convert);
+        }
+
         public void Follow<R>(INotifyCollectionChanged collection, Func<R, ObservableCollection<T>> convert)
         {
             _subscriptions.Add(collection.AddedItems<R>().Subscribe(nc => this.AddCollection(convert(nc))));
