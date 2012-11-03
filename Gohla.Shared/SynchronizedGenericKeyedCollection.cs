@@ -56,56 +56,19 @@ namespace Gohla.Shared
 
         protected override void SetItem(int index, TItem item)
         {
-            if(_context != null)
-                _context.Send(PostSetItem, Tuple.Create(index, item));
-            else
-            {
-                base.SetItem(index, item);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                    item, index));
-            }
-        }
-
-        private void PostSetItem(object state)
-        {
-            Tuple<int, TItem> data = state as Tuple<int, TItem>;
-            base.SetItem(data.Item1, data.Item2);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, 
-                data.Item2, data.Item1));
+            base.SetItem(index, item);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
+                item, index));
         }
 
         protected override void InsertItem(int index, TItem item)
         {
-            if(_context != null)
-                _context.Send(PostInsertItem, Tuple.Create(index, item));
-            else
-            {
-                base.InsertItem(index, item);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
-                    item, index));
-            }
-        }
-
-        private void PostInsertItem(object state)
-        {
-            Tuple<int, TItem> data = state as Tuple<int, TItem>;
-            base.InsertItem(data.Item1, data.Item2);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, 
-                data.Item2, data.Item1));
+            base.InsertItem(index, item);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                item, index));
         }
 
         protected override void ClearItems()
-        {
-            if(_context != null)
-                _context.Send(_ => PostClearItems(), null);
-            else
-            {
-                base.ClearItems();
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            }
-        }
-
-        private void PostClearItems()
         {
             base.ClearItems();
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -113,29 +76,30 @@ namespace Gohla.Shared
 
         protected override void RemoveItem(int index)
         {
+            TItem item = this[index];
+            base.RemoveItem(index);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item,
+                index));
+        }
+
+        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
+        {
             if(_context != null)
-                _context.Send(PostRemoveItem, index);
+            {
+                _context.Send(SendOnCollectionChanged, args);
+            }
             else
             {
-                TItem item = this[index];
-                base.RemoveItem(index);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, 
-                    index));
+                if(CollectionChanged != null)
+                    CollectionChanged(this, args);
             }
         }
 
-        private void PostRemoveItem(object state)
+        private void SendOnCollectionChanged(object state)
         {
-            int index = (int)state;
-            TItem item = this[index];
-            base.RemoveItem(index);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
-        }
-
-        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-        {
+            NotifyCollectionChangedEventArgs args = state as NotifyCollectionChangedEventArgs;
             if(CollectionChanged != null)
-                CollectionChanged(this, e);
+                CollectionChanged(this, args);
         }
     }
 }
