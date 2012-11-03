@@ -60,6 +60,7 @@
     <Compile Include="BiDictionary.cs" />
     <Compile Include="CompositeCollection.cs" />
     <Compile Include="DefaultObservableCollection.cs" />
+    <Compile Include="DisposableExtensions.cs" />
     <Compile Include="EditableCompositeCollection.cs" />
     <Compile Include="EnumerableToString.cs" />
     <Compile Include="Executable.cs" />
