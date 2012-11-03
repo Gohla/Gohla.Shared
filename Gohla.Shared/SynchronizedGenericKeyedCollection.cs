@@ -56,7 +56,14 @@ namespace Gohla.Shared
 
         protected override void SetItem(int index, TItem item)
         {
-            _context.Send(PostSetItem, Tuple.Create(index, item));
+            if(_context != null)
+                _context.Send(PostSetItem, Tuple.Create(index, item));
+            else
+            {
+                base.SetItem(index, item);
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
+                    item, index));
+            }
         }
 
         private void PostSetItem(object state)
@@ -69,7 +76,14 @@ namespace Gohla.Shared
 
         protected override void InsertItem(int index, TItem item)
         {
-            _context.Send(PostInsertItem, Tuple.Create(index, item));
+            if(_context != null)
+                _context.Send(PostInsertItem, Tuple.Create(index, item));
+            else
+            {
+                base.InsertItem(index, item);
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                    item, index));
+            }
         }
 
         private void PostInsertItem(object state)
@@ -82,7 +96,13 @@ namespace Gohla.Shared
 
         protected override void ClearItems()
         {
-            _context.Send(_ => PostClearItems(), null);
+            if(_context != null)
+                _context.Send(_ => PostClearItems(), null);
+            else
+            {
+                base.ClearItems();
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
         }
 
         private void PostClearItems()
@@ -93,7 +113,15 @@ namespace Gohla.Shared
 
         protected override void RemoveItem(int index)
         {
-            _context.Send(PostRemoveItem, index);
+            if(_context != null)
+                _context.Send(PostRemoveItem, index);
+            else
+            {
+                TItem item = this[index];
+                base.RemoveItem(index);
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, 
+                    index));
+            }
         }
 
         private void PostRemoveItem(object state)
