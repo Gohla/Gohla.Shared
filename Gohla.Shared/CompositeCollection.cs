@@ -7,24 +7,25 @@ using System.Reactive.Disposables;
 
 namespace Gohla.Shared
 {
-    public class CompositeCollection<T> : IEnumerable<T>, INotifyCollectionChanged, IDisposable
+    public class CompositeCollection<T, C> : IEnumerable<T>, INotifyCollectionChanged, IDisposable
+        where C : ICollection<T>, INotifyCollectionChanged
     {
         private CompositeDisposable _subscriptions = new CompositeDisposable();
-        protected List<ObservableCollection<T>> _collections = new List<ObservableCollection<T>>();
+        protected List<C> _collections;
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        public CompositeCollection(params ObservableCollection<T>[] collections)
+        public CompositeCollection(params C[] collections)
         {
-            _collections = new List<ObservableCollection<T>>(collections);
-            foreach(ObservableCollection<T> collection in _collections)
+            _collections = new List<C>(collections);
+            foreach(C collection in _collections)
                 collection.CollectionChanged += CollectionChange;
         }
 
-        public CompositeCollection(IEnumerable<ObservableCollection<T>> collections)
+        public CompositeCollection(IEnumerable<C> collections)
         {
-            _collections = new List<ObservableCollection<T>>(collections);
-            foreach(ObservableCollection<T> collection in _collections)
+            _collections = new List<C>(collections);
+            foreach(C collection in _collections)
                 collection.CollectionChanged += CollectionChange;
         }
 
@@ -37,20 +38,36 @@ namespace Gohla.Shared
             _subscriptions = null;
         }
 
-        public void CopyAndFollow<R>(ObservableCollection<R> collection, Func<R, ObservableCollection<T>> convert)
+        public IDisposable CopyAndFollow<R>(ObservableCollection<R> collection, Func<R, C> convert)
         {
             foreach(R r in collection)
                 AddCollection(convert(r));
-            Follow<R>(collection, convert);
+            return Follow<R>(collection, convert);
         }
 
-        public void Follow<R>(INotifyCollectionChanged collection, Func<R, ObservableCollection<T>> convert)
+        public IDisposable CopyAndFollow<R>(IEnumerable<R> enumerable, IObservable<R> addedObservable, 
+            IObservable<R> removedObservable, Func<R, C> convert)
         {
-            _subscriptions.Add(collection.AddedItems<R>().Subscribe(nc => this.AddCollection(convert(nc))));
-            _subscriptions.Add(collection.RemovedItems<R>().Subscribe(nc => this.RemoveCollection(convert(nc))));
+            foreach(R r in enumerable)
+                AddCollection(convert(r));
+            return Follow<R>(addedObservable, removedObservable, convert);
         }
 
-        public void AddCollection(ObservableCollection<T> collection)
+        public IDisposable Follow<R>(INotifyCollectionChanged collection, Func<R, C> convert)
+        {
+            return Follow<R>(collection.AddedItems<R>(), collection.RemovedItems<R>(), convert);
+        }
+
+        public IDisposable Follow<R>(IObservable<R> addedObservable, IObservable<R> removedObservable,
+            Func<R, C> convert)
+        {
+            CompositeDisposable disposables = new CompositeDisposable();
+            disposables.Add(addedObservable.Subscribe(nc => this.AddCollection(convert(nc))));
+            disposables.Add(removedObservable.Subscribe(nc => this.RemoveCollection(convert(nc))));
+            return disposables;
+        }
+
+        public void AddCollection(C collection)
         {
             _collections.Add(collection);
             collection.CollectionChanged += CollectionChange;
@@ -72,7 +89,7 @@ namespace Gohla.Shared
             }
         }
 
-        public void RemoveCollection(ObservableCollection<T> collection)
+        public void RemoveCollection(C collection)
         {
             int offset = IndexAt(collection);
             foreach(T t in collection)
@@ -88,10 +105,10 @@ namespace Gohla.Shared
             collection.CollectionChanged -= CollectionChange;
         }
 
-        protected ObservableCollection<T> CollectionAt(int index, out int newIndex)
+        protected C CollectionAt(int index, out int newIndex)
         {
             int c = 0;
-            foreach(ObservableCollection<T> collection in _collections)
+            foreach(C collection in _collections)
             {
                 if(c + collection.Count > index)
                 {
@@ -103,14 +120,14 @@ namespace Gohla.Shared
             }
 
             newIndex = -1;
-            return null;
+            return default(C);
         }
 
         protected int IndexAt(object collection)
         {
             int offset = 0;
             int i = 0;
-            while(collection != _collections[i] && i < _collections.Count)
+            while(!ReferenceEquals(collection, _collections[i]) && i < _collections.Count)
                 offset += _collections[i++].Count;
 
             return offset;
@@ -119,7 +136,7 @@ namespace Gohla.Shared
         #region IEnumerable<T>
         public IEnumerator<T> GetEnumerator()
         {
-            foreach(ObservableCollection<T> collection in _collections)
+            foreach(C collection in _collections)
                 foreach(T item in collection)
                     yield return item;
         }

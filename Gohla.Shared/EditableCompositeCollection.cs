@@ -2,21 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace Gohla.Shared
 {
-    public class EditableCompositeCollection<T> : CompositeCollection<T>, IList<T>, IList
+    public class EditableCompositeCollection<T, C> : CompositeCollection<T, C>, IList<T>, IList
+        where C : Collection<T>, INotifyCollectionChanged, new()
     {
-        private ObservableCollection<T> _editCollection = new ObservableCollection<T>();
+        private C _editCollection = new C();
 
-        public EditableCompositeCollection(params ObservableCollection<T>[] collections):
+        public EditableCompositeCollection(params C[] collections):
             base(collections)
         {
             AddCollection(_editCollection);
         }
 
-        public EditableCompositeCollection(IEnumerable<ObservableCollection<T>> collections):
+        public EditableCompositeCollection(IEnumerable<C> collections):
             base(collections)
         {
             AddCollection(_editCollection);
@@ -38,7 +40,7 @@ namespace Gohla.Shared
             // TODO: Right semantics?
 
             int newIndex;
-            ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+            C collection = CollectionAt(index, out newIndex);
             if(collection != null)
                 collection.Insert(newIndex, item);
         }
@@ -46,7 +48,7 @@ namespace Gohla.Shared
         public void RemoveAt(int index)
         {
             int newIndex;
-            ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+            C collection = CollectionAt(index, out newIndex);
             if(collection != null)
                 collection.RemoveAt(newIndex);
         }
@@ -56,7 +58,7 @@ namespace Gohla.Shared
             get
             {
                 int newIndex;
-                ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+                C collection = CollectionAt(index, out newIndex);
                 if(collection != null)
                     return collection[newIndex];
                 return default(T);
@@ -64,7 +66,7 @@ namespace Gohla.Shared
             set
             {
                 int newIndex;
-                ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+                C collection = CollectionAt(index, out newIndex);
                 if(collection != null)
                     collection[newIndex] = value;
             }
@@ -92,7 +94,7 @@ namespace Gohla.Shared
         public void CopyTo(T[] array, int arrayIndex)
         {
             int i = arrayIndex;
-            foreach(ObservableCollection<T> collection in _collections)
+            foreach(C collection in _collections)
             {
                 collection.CopyTo(array, arrayIndex);
                 arrayIndex += collection.Count;
@@ -112,7 +114,7 @@ namespace Gohla.Shared
         public bool Remove(T item)
         {
             bool removed = false;
-            foreach(ObservableCollection<T> collection in _collections)
+            foreach(C collection in _collections)
             {
                 removed = removed || collection.Remove(item);
             }
@@ -152,7 +154,7 @@ namespace Gohla.Shared
             // TODO: Right semantics?
 
             int newIndex;
-            ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+            C collection = CollectionAt(index, out newIndex);
             if(collection != null)
                 ((IList)collection).Insert(newIndex, value);
         }
@@ -174,7 +176,7 @@ namespace Gohla.Shared
             get
             {
                 int newIndex;
-                ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+                C collection = CollectionAt(index, out newIndex);
                 if(collection != null)
                     return collection[newIndex];
                 return default(T);
@@ -182,7 +184,7 @@ namespace Gohla.Shared
             set
             {
                 int newIndex;
-                ObservableCollection<T> collection = CollectionAt(index, out newIndex);
+                C collection = CollectionAt(index, out newIndex);
                 if(collection != null)
                     ((IList)collection)[newIndex] = value;
             }
@@ -191,7 +193,7 @@ namespace Gohla.Shared
         public void CopyTo(Array array, int index)
         {
             int i = index;
-            foreach(ObservableCollection<T> collection in _collections)
+            foreach(C collection in _collections)
             {
                 ((IList)collection).CopyTo(array, index);
                 index += collection.Count;
