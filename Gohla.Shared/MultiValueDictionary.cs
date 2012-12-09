@@ -1,25 +1,44 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace gIRC.Shared
+namespace Gohla.Shared
 {
-    /**
-    Dictionary with non unique keys.
-
-    @tparam K   Type of the key.
-    @tparam V   Type of the value.
-    **/
-    public class MultiValueDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+    public class MultiValueDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
-        private Dictionary<K, List<V>> _dictionary = new Dictionary<K, List<V>>();
+        private Dictionary<TKey, List<TValue>> _dictionary;
 
-        /**
-        Gets all keys as an IEnumerable.
-    
-        @return All keys as an IEnumerable.
-        **/
-        public IEnumerable<K> Keys
+        public MultiValueDictionary()
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>();
+        }
+
+        public MultiValueDictionary(Dictionary<TKey, List<TValue>> dictionary)
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>(dictionary);
+        }
+
+        public MultiValueDictionary(IEqualityComparer<TKey> comparer)
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>(comparer);
+        }
+
+        public MultiValueDictionary(int capacity)
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>(capacity);
+        }
+
+        public MultiValueDictionary(Dictionary<TKey, List<TValue>> dictionary, IEqualityComparer<TKey> comparer)
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>(dictionary, comparer);
+        }
+
+        public MultiValueDictionary(int capacity, IEqualityComparer<TKey> comparer)
+        {
+            _dictionary = new Dictionary<TKey, List<TValue>>(capacity, comparer);
+        }
+
+        public IEnumerable<TKey> Keys
         {
             get
             {
@@ -27,12 +46,15 @@ namespace gIRC.Shared
             }
         }
 
-        /**
-        Gets all lists of values as an IEnumerable.
-    
-        @return All lists of values as an IEnumerable.
-        **/
-        public IEnumerable<List<V>> Values
+        public IEnumerable<TValue> Values
+        {
+            get
+            {
+                return _dictionary.Values.SelectMany(x => x);
+            }
+        }
+
+        public IEnumerable<List<TValue>> UniqueValues
         {
             get
             {
@@ -40,127 +62,84 @@ namespace gIRC.Shared
             }
         }
 
-        /**
-        Adds a key and value to the dictionary.
-    
-        @param  key     The key to add.
-        @param  value   The value to add.
-        **/
-        public void Add(K key, V value)
+        public IEnumerable<TValue> this[TKey key]
         {
-            List<V> list;
+            get
+            {
+                List<TValue> list;
+                if(_dictionary.TryGetValue(key, out list))
+                    return list;
+                else
+                    return Enumerable.Empty<TValue>();
+            }
+        }
+
+        public void Add(TKey key, TValue value)
+        {
+            List<TValue> list;
             if(this._dictionary.TryGetValue(key, out list))
             {
                 list.Add(value);
             }
             else
             {
-                list = new List<V>();
+                list = new List<TValue>();
                 list.Add(value);
                 _dictionary[key] = list;
             }
         }
 
-        /**
-        Adds a key value pair to the dictionary.
-    
-        @param  pair    The key value pair to add.
-        **/
-        public void Add(KeyValuePair<K, V> pair)
+        public void Add(KeyValuePair<TKey, TValue> pair)
         {
             Add(pair.Key, pair.Value);
         }
 
-        /**
-        Adds a key value pair to the dictionary. Throws exception if given object is not a KeyValuePair.
-    
-        @param  obj The object to add.
-        **/
-        public void Add(Object obj)
+        public bool ContainsKey(TKey key)
         {
-            Add((KeyValuePair<K, V>)obj);
+            return _dictionary.ContainsKey(key);
         }
 
-        /**
-        Removes all values with given key from the dictionary.
-    
-        @param  key The key to remove all values for.
-        **/
-        public void Remove(K key)
+        public IEnumerable<TValue> Get(TKey key)
         {
-            _dictionary.Remove(key);
-        }
-
-        /**
-        Removes a certain key and value from the dictionary.
-    
-        @param  key     The key to remove.
-        @param  value   The value to remove.
-        **/
-        public void Remove(K key, V value)
-        {
-            List<V> list;
+            List<TValue> list;
             if(_dictionary.TryGetValue(key, out list))
-            {
-                list.Remove(value);
-            }
+                return list;
+            else
+                return Enumerable.Empty<TValue>();
         }
 
-        /**
-        Tries to get all values for a given key.
-    
-        @param  key             The key to search for.
-        @param [out]    list    The list of values for given key. Unchanged if given key does not exist.
-    
-        @return True if values for key were found, false if not.
-        **/
-        public bool TryGetValue(K key, out List<V> list)
+        public bool TryGetValue(TKey key, out IEnumerable<TValue> values)
         {
-            return _dictionary.TryGetValue(key, out list);
+            List<TValue> list;
+            bool found = _dictionary.TryGetValue(key, out list);
+            values = list;
+            return found;
         }
 
-        /**
-        Indexer on dictionary keys.
-    
-        @return List of all values for given key. Returns empty list if given key has no values.
-        **/
-        public List<V> this[K key]
+        public bool Remove(TKey key)
         {
-            get
+            return _dictionary.Remove(key);
+        }
+
+        public bool Remove(TKey key, TValue value)
+        {
+            List<TValue> list;
+            if(_dictionary.TryGetValue(key, out list))
+                return list.Remove(value);
+            return false;
+        }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            foreach(KeyValuePair<TKey, List<TValue>> pair in _dictionary)
             {
-                List<V> list;
-                if(_dictionary.TryGetValue(key, out list))
+                foreach(TValue val in pair.Value)
                 {
-                    return list;
-                }
-                else
-                {
-                    return new List<V>();
+                    yield return new KeyValuePair<TKey, TValue>(pair.Key, val);
                 }
             }
         }
 
-        /**
-        Returns an enumerator over every key-value pair.
-    
-        @return The enumerator over every key-value pair.
-        **/
-        public IEnumerator<KeyValuePair<K, V>> GetEnumerator()
-        {
-            foreach(KeyValuePair<K, List<V>> pair in _dictionary)
-            {
-                foreach(V val in pair.Value)
-                {
-                    yield return new KeyValuePair<K, V>(pair.Key, val);
-                }
-            }
-        }
-
-        /**
-        Returns an enumerator over every key-value pair.
-    
-        @return The enumerator over every key-value pair.
-        **/
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

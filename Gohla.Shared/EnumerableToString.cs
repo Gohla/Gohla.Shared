@@ -5,7 +5,7 @@ using System;
 
 public static class EnumerableToString
 {
-    public static string ToString<T>(this IEnumerable<T> source, string separator)
+    public static String ToString<T>(this IEnumerable<T> source, String separator)
     {
         if (source == null)
             throw new ArgumentException("Parameter source can not be null.");
@@ -22,7 +22,7 @@ public static class EnumerableToString
         return String.Join(separator, array);
     }
 
-    public static string ToString(this IEnumerable source, string separator)
+    public static String ToString(this IEnumerable source, String separator)
     {
         if (source == null)
             throw new ArgumentException("Parameter source can not be null.");
