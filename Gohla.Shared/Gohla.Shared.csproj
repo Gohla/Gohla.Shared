@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayConcat.cs" />
+    <Compile Include="ArrayEqualityComparer.cs" />
     <Compile Include="BiDictionary.cs" />
     <Compile Include="CompositeCollection.cs" />
     <Compile Include="DefaultObservableCollection.cs" />

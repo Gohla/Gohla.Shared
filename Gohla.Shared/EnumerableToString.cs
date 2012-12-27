@@ -1,10 +1,24 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
+using System.Reactive.Linq;
 
 public static class EnumerableToString
 {
+    public static IObservable<String> ToString<T>(this IObservable<IEnumerable<T>> source, String separator)
+    {
+        if(source == null)
+            throw new ArgumentException("Parameter source can not be null.");
+
+        if(String.IsNullOrEmpty(separator))
+            throw new ArgumentException("Parameter separator can not be null or empty.");
+
+        return source
+            .Select(n => n.ToString(separator))
+            ;
+    }
+
     public static String ToString<T>(this IEnumerable<T> source, String separator)
     {
         if (source == null)
