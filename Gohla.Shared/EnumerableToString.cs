@@ -19,6 +19,24 @@ public static class EnumerableToString
             ;
     }
 
+    public static IObservable<String> ToString(this IObservable<object> source, String separator)
+    {
+        if(source == null)
+            throw new ArgumentException("Parameter source can not be null.");
+
+        if(String.IsNullOrEmpty(separator))
+            throw new ArgumentException("Parameter separator can not be null or empty.");
+
+        return source
+            .Aggregate
+            (
+                String.Empty,
+                (o1, o2) => String.Concat(o1, String.IsNullOrWhiteSpace(o1) ? String.Empty : separator, o2)
+            )
+            .Where(s => !String.IsNullOrWhiteSpace(s))
+            ;
+    }
+
     public static String ToString<T>(this IEnumerable<T> source, String separator)
     {
         if (source == null)

@@ -45,9 +45,14 @@ namespace Gohla.Shared
             return _subject.Subscribe(observer);
         }
 
-        public static implicit operator T(ObservableProperty<T> p)
+        public static implicit operator T(ObservableProperty<T> property)
         {
-            return p.Value;
+            return property.Value;
+        }
+
+        public static implicit operator ObservableProperty<T>(T value)
+        {
+            return new ObservableProperty<T>(value);
         }
     }
 }

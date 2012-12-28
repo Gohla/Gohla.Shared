@@ -89,9 +89,28 @@ namespace Gohla.Shared
             }
         }
 
+        public void Add(TKey key, IEnumerable<TValue> values)
+        {
+            List<TValue> list;
+            if(this._dictionary.TryGetValue(key, out list))
+            {
+                list.AddRange(values);
+            }
+            else
+            {
+                list = new List<TValue>(values);
+                _dictionary[key] = list;
+            }
+        }
+
         public void Add(KeyValuePair<TKey, TValue> pair)
         {
             Add(pair.Key, pair.Value);
+        }
+
+        public void Set(TKey key, List<TValue> values)
+        {
+            _dictionary[key] = values;
         }
 
         public bool ContainsKey(TKey key)
