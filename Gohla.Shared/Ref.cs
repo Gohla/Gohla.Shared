@@ -25,7 +25,13 @@
     }
 }
 
-public sealed class NullableRef<T>
+public interface NullableRef
+{
+    bool HasValue { get; }
+    object ValueObject { get; set; }
+}
+
+public sealed class NullableRef<T> : NullableRef
     where T : struct
 {
     private Ref<T> _value;
@@ -33,7 +39,7 @@ public sealed class NullableRef<T>
 
     public bool HasValue { get { return _hasValue; } set { _hasValue = value; if(!value) _value = null; } }
     public T Value { get { return _value.Value; } set { _value.Value = value; _hasValue = true; } }
-    public Ref<T> Ref { get { return _value; } }
+    public object ValueObject { get { return Value; } set { Value = (T)value; } }
 
     public NullableRef()
     {

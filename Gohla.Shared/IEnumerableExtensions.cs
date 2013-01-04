@@ -5,68 +5,76 @@ using System.Linq;
 
 public static class IEnumerableExtensions
 {
-    public static void Do<T>(this IEnumerable<T> enumerable, Action<T> action)
+    public static void Do<T>(this IEnumerable<T> source, Action<T> action)
     {
-        if(enumerable == null)
-            throw new ArgumentNullException("enumerable");
+        if(source == null)
+            throw new ArgumentNullException("source");
 
-        foreach(T item in enumerable)
+        foreach(T item in source)
             action(item);
     }
 
-    public static void Evaluate<T>(this IEnumerable<T> enumerable)
+    public static void Evaluate<T>(this IEnumerable<T> source)
     {
-        if(enumerable == null)
+        if(source == null)
             throw new ArgumentNullException("enumerable");
 
-        foreach(T item in enumerable)
-            ;
+        foreach(T item in source);
     }
 
-    public static IEnumerable<R> As<R>(this IEnumerable enumerable)
+    public static IEnumerable<R> As<R>(this IEnumerable source)
         where R : class
     {
-        foreach(object obj in enumerable)
+        if(source == null)
+            throw new ArgumentNullException("source");
+
+        foreach(object obj in source)
             yield return obj as R;
     }
 
     public static IEnumerable<T> AsEnumerable<T>(this T item)
     {
+        if(item == null)
+            throw new ArgumentNullException("item");
+
         yield return item;
     }
 
-    public static bool IsEmpty<T>(this IEnumerable<T> enumerable)
-    {
-        if(enumerable == null)
-            throw new ArgumentNullException("enumerable");
-
-        ICollection<T> genericCollection = enumerable as ICollection<T>;
-        if(genericCollection != null)
-            return genericCollection.Count == 0;
-
-        ICollection nonGenericCollection = enumerable as ICollection;
-        if(nonGenericCollection != null)
-            return nonGenericCollection.Count == 0;
-
-        return !enumerable.Any();
-    }
-
-    public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, int n)
+    public static bool IsEmpty<T>(this IEnumerable<T> source)
     {
         if(source == null)
             throw new ArgumentNullException("source");
 
-        if(n < 0)
-            throw new ArgumentOutOfRangeException("n", "Argument n should be non-negative.");
+        ICollection<T> genericCollection = source as ICollection<T>;
+        if(genericCollection != null)
+            return genericCollection.Count == 0;
 
-        Queue<T> buffer = new Queue<T>(n + 1);
+        ICollection nonGenericCollection = source as ICollection;
+        if(nonGenericCollection != null)
+            return nonGenericCollection.Count == 0;
 
-        foreach(T x in source)
+        return !source.Any();
+    }
+
+    public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
+    {
+        if(source == null)
+            throw new ArgumentNullException("source");
+
+        using(IEnumerator<T> iterator = source.GetEnumerator())
         {
-            buffer.Enqueue(x);
+            if(!iterator.MoveNext())
+            {
+                yield break;
+            }
 
-            if(buffer.Count == n + 1)
-                yield return buffer.Dequeue();
+            T previous = iterator.Current;
+
+            while(iterator.MoveNext())
+            {
+                yield return previous;
+                previous = iterator.Current;
+            }
         }
     }
 }
