@@ -4,41 +4,59 @@ using System.Linq;
 
 namespace Gohla.Shared
 {
-    public class MultiValueDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+    public class MultiValueDictionary<TKey, TValue> : IDictionary<TKey, ICollection<TValue>>
     {
-        private Dictionary<TKey, List<TValue>> _dictionary;
+        private Dictionary<TKey, ICollection<TValue>> _dictionary;
 
         public MultiValueDictionary()
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>();
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>();
         }
 
-        public MultiValueDictionary(Dictionary<TKey, List<TValue>> dictionary)
+        public MultiValueDictionary(Dictionary<TKey, ICollection<TValue>> dictionary)
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>(dictionary);
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>(dictionary);
         }
 
         public MultiValueDictionary(IEqualityComparer<TKey> comparer)
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>(comparer);
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>(comparer);
         }
 
         public MultiValueDictionary(int capacity)
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>(capacity);
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>(capacity);
         }
 
-        public MultiValueDictionary(Dictionary<TKey, List<TValue>> dictionary, IEqualityComparer<TKey> comparer)
+        public MultiValueDictionary(Dictionary<TKey, ICollection<TValue>> dictionary, IEqualityComparer<TKey> comparer)
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>(dictionary, comparer);
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>(dictionary, comparer);
         }
 
         public MultiValueDictionary(int capacity, IEqualityComparer<TKey> comparer)
         {
-            _dictionary = new Dictionary<TKey, List<TValue>>(capacity, comparer);
+            _dictionary = new Dictionary<TKey, ICollection<TValue>>(capacity, comparer);
         }
 
-        public IEnumerable<TKey> Keys
+        public int Count
+        {
+            get
+            {
+                return _dictionary.Values
+                    .Sum(c => c.Count)
+                    ;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public ICollection<TKey> Keys
         {
             get
             {
@@ -50,11 +68,13 @@ namespace Gohla.Shared
         {
             get
             {
-                return _dictionary.Values.SelectMany(x => x);
+                return _dictionary.Values
+                    .SelectMany(x => x)
+                    ;
             }
         }
 
-        public IEnumerable<List<TValue>> UniqueValues
+        ICollection<ICollection<TValue>> IDictionary<TKey, ICollection<TValue>>.Values
         {
             get
             {
@@ -62,44 +82,89 @@ namespace Gohla.Shared
             }
         }
 
-        public IEnumerable<TValue> this[TKey key]
+        public IEnumerable<KeyValuePair<TKey, TValue>> Pairs
         {
             get
             {
-                List<TValue> list;
-                if(_dictionary.TryGetValue(key, out list))
-                    return list;
-                else
-                    return Enumerable.Empty<TValue>();
+                foreach(KeyValuePair<TKey, ICollection<TValue>> pair in _dictionary)
+                {
+                    foreach(TValue val in pair.Value)
+                    {
+                        yield return new KeyValuePair<TKey, TValue>(pair.Key, val);
+                    }
+                }
             }
+        }
+
+        public ICollection<TValue> this[TKey key]
+        {
+            get
+            {
+                ICollection<TValue> collection;
+                if(_dictionary.TryGetValue(key, out collection))
+                    return collection;
+                else
+                    return Add(key);
+            }
+            set
+            {
+                _dictionary[key] = value;
+            }
+        }
+
+        public ICollection<TValue> Add(TKey key)
+        {
+            ICollection<TValue> collection;
+            if(!_dictionary.TryGetValue(key, out collection))
+            {
+                collection = new List<TValue>();
+                _dictionary[key] = collection;
+            }
+            return collection;
         }
 
         public void Add(TKey key, TValue value)
         {
-            List<TValue> list;
-            if(this._dictionary.TryGetValue(key, out list))
+            ICollection<TValue> collection;
+            if(_dictionary.TryGetValue(key, out collection))
             {
-                list.Add(value);
+                collection.Add(value);
             }
             else
             {
-                list = new List<TValue>();
-                list.Add(value);
-                _dictionary[key] = list;
+                collection = new List<TValue>();
+                collection.Add(value);
+                _dictionary[key] = collection;
+            }
+        }
+
+        public void Add(TKey key, ICollection<TValue> values)
+        {
+            ICollection<TValue> collection;
+            if(_dictionary.TryGetValue(key, out collection))
+            {
+                foreach(TValue value in values)
+                    collection.Add(value);
+            }
+            else
+            {
+                collection = new List<TValue>(values);
+                _dictionary[key] = collection;
             }
         }
 
         public void Add(TKey key, IEnumerable<TValue> values)
         {
-            List<TValue> list;
-            if(this._dictionary.TryGetValue(key, out list))
+            ICollection<TValue> collection;
+            if(_dictionary.TryGetValue(key, out collection))
             {
-                list.AddRange(values);
+                foreach(TValue value in values)
+                    collection.Add(value);
             }
             else
             {
-                list = new List<TValue>(values);
-                _dictionary[key] = list;
+                collection = new List<TValue>(values);
+                _dictionary[key] = collection;
             }
         }
 
@@ -108,9 +173,19 @@ namespace Gohla.Shared
             Add(pair.Key, pair.Value);
         }
 
-        public void Set(TKey key, List<TValue> values)
+        public void Add(KeyValuePair<TKey, ICollection<TValue>> pair)
         {
-            _dictionary[key] = values;
+            Add(pair.Key, pair.Value);
+        }
+
+        public void CopyTo(KeyValuePair<TKey, ICollection<TValue>>[] array, int arrayIndex)
+        {
+            ((ICollection<KeyValuePair<TKey, ICollection<TValue>>>)_dictionary).CopyTo(array, arrayIndex);
+        }
+
+        public bool Contains(KeyValuePair<TKey, ICollection<TValue>> pair)
+        {
+            return ((ICollection<KeyValuePair<TKey, ICollection<TValue>>>)_dictionary).Contains(pair);
         }
 
         public bool ContainsKey(TKey key)
@@ -118,20 +193,19 @@ namespace Gohla.Shared
             return _dictionary.ContainsKey(key);
         }
 
-        public IEnumerable<TValue> Get(TKey key)
+        public bool TryGetValue(TKey key, out ICollection<TValue> values)
         {
-            List<TValue> list;
-            if(_dictionary.TryGetValue(key, out list))
-                return list;
-            else
-                return Enumerable.Empty<TValue>();
+            ICollection<TValue> collection;
+            bool found = _dictionary.TryGetValue(key, out collection);
+            values = collection;
+            return found;
         }
 
         public bool TryGetValue(TKey key, out IEnumerable<TValue> values)
         {
-            List<TValue> list;
-            bool found = _dictionary.TryGetValue(key, out list);
-            values = list;
+            ICollection<TValue> collection;
+            bool found = _dictionary.TryGetValue(key, out collection);
+            values = collection;
             return found;
         }
 
@@ -142,21 +216,36 @@ namespace Gohla.Shared
 
         public bool Remove(TKey key, TValue value)
         {
-            List<TValue> list;
-            if(_dictionary.TryGetValue(key, out list))
-                return list.Remove(value);
+            ICollection<TValue> collection;
+            if(_dictionary.TryGetValue(key, out collection))
+                return collection.Remove(value);
             return false;
         }
 
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        public void Remove(KeyValuePair<TKey, TValue> pair)
         {
-            foreach(KeyValuePair<TKey, List<TValue>> pair in _dictionary)
+            Remove(pair.Key, pair.Value);
+        }
+
+        public bool Remove(KeyValuePair<TKey, ICollection<TValue>> pair)
+        {
+            ICollection<TValue> collection;
+            if(_dictionary.TryGetValue(pair.Key, out collection))
             {
-                foreach(TValue val in pair.Value)
-                {
-                    yield return new KeyValuePair<TKey, TValue>(pair.Key, val);
-                }
+                if(Equals(collection, pair.Value))
+                    return _dictionary.Remove(pair.Key);
             }
+            return false;
+        }
+
+        public void Clear()
+        {
+            _dictionary.Clear();
+        }
+
+        public IEnumerator<KeyValuePair<TKey, ICollection<TValue>>> GetEnumerator()
+        {
+            return _dictionary.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
