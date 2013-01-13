@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Reactive.Linq;
 using Newtonsoft.Json.Linq;
@@ -16,8 +15,8 @@ namespace Gohla.Shared.Json
                 r => ReponseToObservable<JObject, JObject>
                 (
                     r,
-                    s => JObject.Parse(new StreamReader(s).ReadToEnd()),
-                    x => new JObject[] { x }.ToObservable()
+                    s => JObject.Parse(HTTPUtility.Decode(r, s).Replace("\\x", "\\u00")), // JSON.net does not support hexadecimal escapes.
+                    x => Observable.Return(x)
                 )
             );
         }

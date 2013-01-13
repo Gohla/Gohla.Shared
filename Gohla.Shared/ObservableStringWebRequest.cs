@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Reactive.Linq;
 
@@ -15,7 +14,7 @@ namespace Gohla.Shared
                 r => ReponseToObservable<String, String>
                 (
                     r,
-                    s => new StreamReader(s).ReadToEnd(),
+                    s => HTTPUtility.Decode(r, s),
                     x => new String[] { x }.ToObservable()
                 )
             );
