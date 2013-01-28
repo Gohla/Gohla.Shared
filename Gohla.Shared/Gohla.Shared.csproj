@@ -69,6 +69,7 @@
     <Compile Include="FileType.cs" />
     <Compile Include="FollowCollection.cs" />
     <Compile Include="GenericKeyedCollection.cs" />
+    <Compile Include="HTTPUtility.cs" />
     <Compile Include="IEnumerableExtensions.cs" />
     <Compile Include="IObservableCollection.cs" />
     <Compile Include="MultiValueDictionary.cs" />
