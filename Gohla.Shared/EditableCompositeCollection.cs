@@ -8,7 +8,7 @@ using System.Linq;
 namespace Gohla.Shared
 {
     public class EditableCompositeCollection<T, C> : CompositeCollection<T, C>, IList<T>, IList
-        where C : Collection<T>, INotifyCollectionChanged, new()
+        where C : IList<T>, INotifyCollectionChanged, new()
     {
         private C _editCollection = new C();
 
